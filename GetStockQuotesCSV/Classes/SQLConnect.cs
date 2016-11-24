@@ -96,21 +96,31 @@ namespace GetStockQuotesCSV
 
             // get last date of quote data
             DateTime dtFrom = new DateTime();
-//            string query =
-    //        "SELECT ISNULL(DATEADD(d,1,MAX(CONVERT(datetime,[DATE]))),'1-1-1900') AS [next_day] " +
-     //       "FROM [dbo].[STOCK_DATA_FLAT] WHERE SYMBOL = '" + symbol + "'";
-  //          "DECLARE @lastdt datetime " +
-   //         "EXEC GetLastDtForSymbol '" + symbol + "', @lastdt = @lastdt OUTPUT";
+            //            string query =
+            //        "SELECT ISNULL(DATEADD(d,1,MAX(CONVERT(datetime,[DATE]))),'1-1-1900') AS [next_day] " +
+            //       "FROM [dbo].[STOCK_DATA_FLAT] WHERE SYMBOL = '" + symbol + "'";
+            //          "DECLARE @lastdt datetime " +
+            //         "EXEC GetLastDtForSymbol '" + symbol + "', @lastdt = @lastdt OUTPUT";
 
 
-            using (SqlConnection conn = new SqlConnection("Data Source=KIRKBOZEMAN98C1\\SQLEXPRESS;Initial Catalog=Sandbox;Integrated Security=SSPI;"))
+            SqlConnection conn = new SqlConnection("Data Source=KIRKBOZEMAN98C1\\SQLEXPRESS;Initial Catalog=Sandbox;Integrated Security=SSPI;");
+
             using (SqlCommand cmd = new SqlCommand("dbo.GetLastDtForSymbol", conn))
             {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@symbol", SqlDbType.VarChar, 10);
+                cmd.Parameters.Add("@lastdt", SqlDbType.DateTime).Direction = ParameterDirection.Output;
+                cmd.Parameters["@symbol"].Value = symbol;
+
                 conn.Open();
 
-                dtFrom = (DateTime)cmd.ExecuteScalar();
+                cmd.ExecuteNonQuery();
 
+                //                dtFrom = (DateTime)cmd.ExecuteScalar();
 
+                dtFrom = Convert.ToDateTime(cmd.Parameters["@lastdt"].Value);
+
+//                conn.Close();
             }
 
 
@@ -126,7 +136,7 @@ namespace GetStockQuotesCSV
             }
 
             string[] dataArray = strCSV.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            query = "INSERT INTO dbo.[STOCK_DATA_FLAT] " +
+            string query = "INSERT INTO dbo.[STOCK_DATA_FLAT] " +
                 "VALUES (@symbol, @date, @open, @high, @low, @close, @volume, @adj_close, @pull_datetime)";
  //           SqlConnection conn = new SqlConnection("Data Source=KIRKBOZEMAN98C1\\SQLEXPRESS;Initial Catalog=Sandbox;Integrated Security=SSPI;");
 //            conn.Open();
