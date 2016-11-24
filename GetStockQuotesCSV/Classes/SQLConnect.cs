@@ -71,8 +71,11 @@ namespace GetStockQuotesCSV
         {
             DateTime returnDate = new DateTime();
             string query =
-            "SELECT ISNULL(DATEADD(d,1,MAX(CONVERT(datetime,[DATE]))),'1-1-1900') AS [next_day] " +
-            "FROM [dbo].[STOCK_DATA_FLAT] WHERE SYMBOL = '" + symbol + "'";
+            "DECLARE @lastdt datetime " +
+            "EXEC GetLastDtForSymbol '" + symbol + "', @lastdt = @lastdt OUTPUT";
+
+            //            "SELECT ISNULL(DATEADD(d,1,MAX(CONVERT(datetime,[DATE]))),'1-1-1900') AS [next_day] " +
+            //           "FROM [dbo].[STOCK_DATA_FLAT] WHERE SYMBOL = '" + symbol + "'";
 
             SqlConnection conn = new SqlConnection("Data Source=KIRKBOZEMAN98C1\\SQLEXPRESS;Initial Catalog=Sandbox;Integrated Security=SSPI;");
             conn.Open();
@@ -93,17 +96,23 @@ namespace GetStockQuotesCSV
 
             // get last date of quote data
             DateTime dtFrom = new DateTime();
-            string query =
-            "SELECT ISNULL(DATEADD(d,1,MAX(CONVERT(datetime,[DATE]))),'1-1-1900') AS [next_day] " +
-            "FROM [dbo].[STOCK_DATA_FLAT] WHERE SYMBOL = '" + symbol + "'";
+//            string query =
+    //        "SELECT ISNULL(DATEADD(d,1,MAX(CONVERT(datetime,[DATE]))),'1-1-1900') AS [next_day] " +
+     //       "FROM [dbo].[STOCK_DATA_FLAT] WHERE SYMBOL = '" + symbol + "'";
+  //          "DECLARE @lastdt datetime " +
+   //         "EXEC GetLastDtForSymbol '" + symbol + "', @lastdt = @lastdt OUTPUT";
 
-            SqlConnection conn = new SqlConnection("Data Source=KIRKBOZEMAN98C1\\SQLEXPRESS;Initial Catalog=Sandbox;Integrated Security=SSPI;");
-            conn.Open();
 
-            using (SqlCommand cmd = new SqlCommand(query, conn))
+            using (SqlConnection conn = new SqlConnection("Data Source=KIRKBOZEMAN98C1\\SQLEXPRESS;Initial Catalog=Sandbox;Integrated Security=SSPI;"))
+            using (SqlCommand cmd = new SqlCommand("dbo.GetLastDtForSymbol", conn))
             {
+                conn.Open();
+
                 dtFrom = (DateTime)cmd.ExecuteScalar();
+
+
             }
+
 
 
             // remember, Yahoo is inclusive (includes dtFrom sent)
